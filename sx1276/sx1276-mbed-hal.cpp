@@ -24,8 +24,8 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #endif
 
 #include "sx1276-mbed-hal.h"
-
-
+#include <chrono>
+#include "mbed.h"
 
 SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
                             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
@@ -174,7 +174,7 @@ void SX1276Generic::SpiInit( void )
 #else
     _spi->frequency( frequencyToSet );
 #endif
-    Sleep_ms(100);
+   wait_us( 1000 *100);
 }
 
 void SX1276Generic::IoIrqInit( DioIrqHandler *irqHandlers )
@@ -383,24 +383,25 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
     }
 }
 
-void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int timeout_us)
+void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int timeout_ms)
 {
+
     switch(timer) {
 	    case RXTimeoutTimer:
             if (func)
-                rxTimeoutTimer.attach_us(callback(this, func), timeout_us);
+                rxTimeoutTimer.attach(callback(this, func), std::chrono::milliseconds(timeout_ms));
             else
                 rxTimeoutTimer.detach();
             break;
         case TXTimeoutTimer:
             if (func)
-                txTimeoutTimer.attach_us(callback(this, func), timeout_us);
+                txTimeoutTimer.attach(callback(this, func), std::chrono::milliseconds(timeout_ms));
             else
                 txTimeoutTimer.detach();
             break;
         case RXTimeoutSyncWordTimer:
             if (func)
-                rxTimeoutSyncWord.attach_us(callback(this, func), timeout_us);
+                rxTimeoutSyncWord.attach(callback(this, func), std::chrono::milliseconds(timeout_ms));
             else
                 rxTimeoutSyncWord.detach();
             break;
@@ -410,7 +411,7 @@ void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int ti
 void
 SX1276Generic::Sleep_ms(int ms)
 {
-    wait_us(ms * 1000);
+   wait_us( 1000 *ms);
 }
 
 bool SX1276Generic::CheckRfFrequency( uint32_t frequency )
@@ -425,10 +426,10 @@ void SX1276Generic::Reset( void )
 {
 	_reset->output();
 	*_reset = 0;
-	Sleep_ms( 1 );
+	wait_us( 1000 );
     *_reset = 1;
     _reset->input();	// I don't know why input again, maybe to save power (Helmut T)
-	Sleep_ms( 6 );
+	wait_us( 6000 );
 }
 
 void SX1276Generic::Write( uint8_t addr, uint8_t data )
