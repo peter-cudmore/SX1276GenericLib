@@ -237,7 +237,7 @@ void SX1276::RxChainCalibration( void )
     }
 
     // Sets a Frequency in HF band
-    SetChannel( 868000000 );
+    SetChannel( 915000000 );
 
 	// Launch Rx chain calibration for HF band
     Write ( REG_IMAGECAL, ( Read( REG_IMAGECAL ) & RF_IMAGECAL_IMAGECAL_MASK ) | RF_IMAGECAL_IMAGECAL_START );
@@ -389,8 +389,9 @@ void SX1276::SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
 			Write( REG_LR_MODEMCONFIG1,
                          ( Read( REG_LR_MODEMCONFIG1 ) &
                            RFLR_MODEMCONFIG1_BW_MASK &
-                           RFLR_MODEMCONFIG1_CODINGRATE_MASK &
-                           RFLR_MODEMCONFIG1_IMPLICITHEADER_MASK ) |
+                           RFLR_MODEMCONFIG1_CODINGRATE_MASK
+                           & RFLR_MODEMCONFIG1_IMPLICITHEADER_MASK
+                           ) |
                            ( bandwidth << 4 ) | ( coderate << 1 ) |
                            fixLen );
 
@@ -555,8 +556,9 @@ void SX1276::SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
             Write( REG_LR_MODEMCONFIG1,
                          ( Read( REG_LR_MODEMCONFIG1 ) &
                            RFLR_MODEMCONFIG1_BW_MASK &
-                           RFLR_MODEMCONFIG1_CODINGRATE_MASK &
-                           RFLR_MODEMCONFIG1_IMPLICITHEADER_MASK ) |
+                           RFLR_MODEMCONFIG1_CODINGRATE_MASK
+                          &  RFLR_MODEMCONFIG1_IMPLICITHEADER_MASK
+                           ) |
                            ( bandwidth << 4 ) | ( coderate << 1 ) |
                            fixLen );
 
@@ -1469,7 +1471,12 @@ void SX1276::OnDio0Irq( void )
                     if( this->settings.LoRa.RxContinuous == false )
                     {
                         this->settings.State = RF_IDLE;
+                    }  else {
+                        // Reset Fifo
+                        // Edit: PC
+                        Write(REG_LR_FIFORXBYTEADDR, RFLR_FIFORXBASEADDR);
                     }
+
                     SetTimeout(RXTimeoutTimer, NULL);
                     
                     if(this->RadioEvents && this->RadioEvents->RxDone)
