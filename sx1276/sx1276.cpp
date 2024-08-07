@@ -739,9 +739,7 @@ void SX1276::Send( void *buffer, int16_t size, void *header, int16_t hsize )
             // Initializes the payload size
             Write( REG_LR_PAYLOADLENGTH, size + hsize);
 
-            // Full buffer used for Tx
-            Write( REG_LR_FIFOTXBASEADDR, 0 );
-            Write( REG_LR_FIFOADDRPTR, 0 );
+            Write(REG_LR_FIFOADDRPTR, Read(REG_LR_FIFOTXBASEADDR));
 
             // FIFO operations can not take place in Sleep mode
             if( ( Read( REG_OPMODE ) & ~RF_OPMODE_MASK ) == RF_OPMODE_SLEEP )
@@ -907,8 +905,7 @@ void SX1276::Rx( uint32_t timeout )
                 // DIO0=RxDone
                 Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
             }
-            Write( REG_LR_FIFORXBASEADDR, 0 );
-            Write( REG_LR_FIFOADDRPTR, 0 );
+            Write( REG_LR_FIFOADDRPTR, Read(REG_LR_FIFORXBASEADDR));
         }
         break;
     }
